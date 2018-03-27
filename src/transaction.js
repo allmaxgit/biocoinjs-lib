@@ -23,6 +23,7 @@ function vectorSize (someVector) {
 
 function Transaction () {
   this.version = 1
+  this.time = Math.round(new Date().getTime() / 1000)
   this.locktime = 0
   this.ins = []
   this.outs = []
@@ -90,6 +91,7 @@ Transaction.fromBuffer = function (buffer, __noStrict) {
 
   var tx = new Transaction()
   tx.version = readInt32()
+  tx.time = readUInt32()
 
   var marker = buffer.readUInt8(offset)
   var flag = buffer.readUInt8(offset + 1)
@@ -209,7 +211,7 @@ Transaction.prototype.__byteLength = function (__allowWitness) {
   var hasWitnesses = __allowWitness && this.hasWitnesses()
 
   return (
-    (hasWitnesses ? 10 : 8) +
+    (hasWitnesses ? 10 + 4: 8 + 4) +
     varuint.encodingLength(this.ins.length) +
     varuint.encodingLength(this.outs.length) +
     this.ins.reduce(function (sum, input) { return sum + 40 + varSliceSize(input.script) }, 0) +
@@ -221,6 +223,7 @@ Transaction.prototype.__byteLength = function (__allowWitness) {
 Transaction.prototype.clone = function () {
   var newTx = new Transaction()
   newTx.version = this.version
+  newTx.time = this.time
   newTx.locktime = this.locktime
 
   newTx.ins = this.ins.map(function (txIn) {
@@ -389,6 +392,7 @@ Transaction.prototype.hashForWitnessV0 = function (inIndex, prevOutScript, value
 
   var input = this.ins[inIndex]
   writeUInt32(this.version)
+  writeUInt32(this.time)
   writeSlice(hashPrevouts)
   writeSlice(hashSequence)
   writeSlice(input.hash)
@@ -432,6 +436,7 @@ Transaction.prototype.__toBuffer = function (buffer, initialOffset, __allowWitne
   function writeVector (vector) { writeVarInt(vector.length); vector.forEach(writeVarSlice) }
 
   writeInt32(this.version)
+  writeUInt32(this.time)
 
   var hasWitnesses = __allowWitness && this.hasWitnesses()
 
