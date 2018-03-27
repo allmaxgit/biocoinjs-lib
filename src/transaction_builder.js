@@ -499,7 +499,12 @@ TransactionBuilder.prototype.setVersion = function (version) {
   // XXX: this might eventually become more complex depending on what the versions represent
   this.tx.version = version
 }
-
+TransactionBuilder.prototype.setTime = function (time) {
+  typeforce(types.UInt32, time)
+ 
+   this.tx.time = time
+ }
+ 
 TransactionBuilder.fromTransaction = function (transaction, network) {
   var txb = new TransactionBuilder(network)
 
